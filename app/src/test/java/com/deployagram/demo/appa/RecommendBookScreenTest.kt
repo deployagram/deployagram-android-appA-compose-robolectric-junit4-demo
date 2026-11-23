@@ -7,6 +7,8 @@ import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.onAllNodesWithText
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performTextInput
+import com.deployagram.junit4.DeployagramRule
+import com.deployagram.mockwebserver.RecordingDispatcher
 import okhttp3.mockwebserver.Dispatcher
 import okhttp3.mockwebserver.MockResponse
 import okhttp3.mockwebserver.MockWebServer
@@ -31,6 +33,9 @@ import java.util.concurrent.TimeUnit
 class RecommendBookScreenTest {
 
     @get:Rule
+    val deployagram = DeployagramRule()
+
+    @get:Rule
     val composeRule = createAndroidComposeRule<MainActivity>()
 
     private val defaultBookOverflowUrl = BookOverflowConfig.baseUrl
@@ -43,7 +48,12 @@ class RecommendBookScreenTest {
         bookOverflow = MockWebServer()
         bookOverflowAnswers = SuggestionAnswers()
         enteredEmail = "reader-${UUID.randomUUID()}@example.com"
-        bookOverflow.dispatcher = bookOverflowAnswers
+        // Deployagram records the request AppA sends, and the answer BookOverflow gives.
+        bookOverflow.dispatcher = RecordingDispatcher(
+            bookOverflowAnswers,
+            "AliceA",
+            "ORG_ctm_01m1j08sx96792d2tysabvyadp:BookOverflow",
+        )
         bookOverflow.start()
         BookOverflowConfig.baseUrl = bookOverflow.url("/").toString().trimEnd('/')
     }
